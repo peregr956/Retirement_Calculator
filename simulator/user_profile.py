@@ -6,3 +6,7 @@ class UserProfile:
         self.salary = salary
         self.salary_growth = salary_growth
         self.inflation_rate = inflation_rate
+
+    def projected_salaries(self):
+        years = self.end_age - self.current_age + 1
+        return [self.salary * ((1 + self.salary_growth) ** i) for i in range(years)]
