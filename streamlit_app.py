@@ -3,6 +3,9 @@ import plotly.graph_objects as go
 from simulator.user_profile import UserProfile
 from simulator.investment_account import InvestmentAccount
 from simulator.simulation_engine import SimulationEngine
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # --- Utility ---
 def generate_contribution_list(start_value, years, growth_rate=0.03):
