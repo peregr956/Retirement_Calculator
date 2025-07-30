@@ -8,11 +8,14 @@ class SimulationEngine:
         self.results = pd.DataFrame(index=self.years)
 
     def run_projection(self):
+        salaries = self.user.projected_salaries()
         projection_years = len(self.years)
+
         for i, age in enumerate(self.years):
             is_contributing = age < self.user.retirement_age
+            salary = salaries[i]
             for account in self.accounts:
-                account.project_year(i, is_contributing)
+                account.project_year(i, is_contributing, salary)
 
         for account in self.accounts:
             self.results[account.name] = account.history
