@@ -61,33 +61,40 @@ class SimulationEngine:
         return income_summary
 
     def compute_growing_monthly_income(self, real_growth_rate=0.02):
-        """Compute real and nominal monthly income where withdrawals grow at a constant real rate."""
+        """
+        Compute real and nominal monthly income where withdrawals grow at a constant real rate.
+        Assumes you deplete the balance to $0 by end_age.
+        """
         income_summary = []
         retirement_index = self.user.retirement_age - self.user.current_age
         retirement_years = self.user.end_age - self.user.retirement_age
         total_months = retirement_years * 12
-
+    
         for account in self.accounts:
             balance = account.history[retirement_index]
             nominal_return = account.annual_return
             inflation = self.user.inflation_rate
-
+    
+            # Convert to real return rate
             real_return = (1 + nominal_return) / (1 + inflation) - 1
-            r_m = (1 + real_return) ** (1 / 12) - 1
-            g_m = (1 + real_growth_rate) ** (1 / 12) - 1
-
+            r_m = (1 + real_return) ** (1 / 12) - 1  # Monthly real return
+            g_m = (1 + real_growth_rate) ** (1 / 12) - 1  # Monthly real growth of withdrawals
+    
+            # Growing annuity formula (real dollars)
             if abs(r_m - g_m) < 1e-8:
                 p_real = balance / total_months
             else:
                 p_real = balance * (r_m / (1 - ((1 + g_m) / (1 + r_m)) ** total_months))
-
+    
+            # Adjust the first payment into nominal dollars at retirement
             years_to_retirement = self.user.retirement_age - self.user.current_age
             p_nominal = p_real * ((1 + inflation) ** years_to_retirement)
-
+    
             income_summary.append({
                 "account": account.name,
                 "real_monthly": round(p_real, 2),
                 "nominal_monthly_first_year": round(p_nominal, 2)
             })
-
+    
         return income_summary
+    
