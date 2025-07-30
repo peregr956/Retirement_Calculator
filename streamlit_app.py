@@ -82,23 +82,33 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Monthly Retirement Take-Home Pay ---
 st.subheader("💰 Monthly Retirement Take-Home Pay")
 
 st.markdown(
-    "These estimates assume you draw down each account evenly until your life expectancy, "
-    "while maintaining constant purchasing power. Balances are exhausted at the end of retirement."
+    """
+    These estimates assume you fully deplete your accounts by end of retirement.
+
+    - **Fixed purchasing power**: Withdrawals keep your lifestyle constant, adjusted for inflation.
+    - **Growing withdrawals**: You increase your purchasing power each year (e.g. 2% real growth).
+    """
 )
 
+# Merge both summaries
 income_table = {
     "Account": [],
-    "Monthly (Real $)": [],
-    "Monthly (First-Year Nominal $)": []
+    "Fixed (Real $)": [],
+    "Fixed (Nominal $)": [],
+    "Growing (Real $)": [],
+    "Growing (Nominal $)": []
 }
 
-for entry in income_summary:
-    income_table["Account"].append(entry["account"])
-    income_table["Monthly (Real $)"].append(f"${entry['real_monthly']:,.0f}")
-    income_table["Monthly (First-Year Nominal $)"].append(f"${entry['nominal_monthly_first_year']:,.0f}")
+for i in range(len(income_summary)):
+    acc = income_summary[i]["account"]
+    income_table["Account"].append(acc)
+    income_table["Fixed (Real $)"].append(f"${income_summary[i]['real_monthly']:,.0f}")
+    income_table["Fixed (Nominal $)"].append(f"${income_summary[i]['nominal_monthly_first_year']:,.0f}")
+    income_table["Growing (Real $)"].append(f"${income_summary_growing[i]['real_monthly']:,.0f}")
+    income_table["Growing (Nominal $)"].append(f"${income_summary_growing[i]['nominal_monthly_first_year']:,.0f}")
 
 st.table(income_table)
+
