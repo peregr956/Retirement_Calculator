@@ -55,6 +55,8 @@ engine = SimulationEngine(user, [k401, ira])
 
 results = engine.run_projection()
 income_summary = engine.compute_monthly_income_at_retirement()
+income_summary_growing = engine.compute_growing_monthly_income(real_growth_rate=0.02)
+
 
 # --- Display Projection Table ---
 st.subheader("📊 Projection Table")
