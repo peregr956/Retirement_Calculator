@@ -4,7 +4,7 @@ from simulator.user_profile import UserProfile
 from simulator.investment_account import InvestmentAccount
 from simulator.simulation_engine import SimulationEngine
 
-# --- Utility Function ---
+# --- Utility ---
 def generate_contribution_list(start_value, years, growth_rate=0.03):
     return [round(start_value * ((1 + growth_rate) ** i), 2) for i in range(years)]
 
@@ -19,6 +19,7 @@ end_age = st.sidebar.number_input("End Age", value=85)
 salary = st.sidebar.number_input("Current Salary ($)", value=100000)
 salary_growth = st.sidebar.slider("Salary Growth Rate (%)", 0.0, 10.0, 2.0) / 100
 inflation = st.sidebar.slider("Inflation Rate (%)", 0.0, 10.0, 2.0) / 100
+real_growth_rate = st.sidebar.slider("Real Growth Rate for Growing Withdrawals (%)", 0.0, 5.0, 2.0) / 100
 
 user = UserProfile(current_age, retirement_age, end_age, salary, salary_growth, inflation)
 projection_years = end_age - current_age + 1
@@ -55,14 +56,13 @@ engine = SimulationEngine(user, [k401, ira])
 
 results = engine.run_projection()
 income_summary = engine.compute_monthly_income_at_retirement()
-income_summary_growing = engine.compute_growing_monthly_income(real_growth_rate=0.02)
-
+income_summary_growing = engine.compute_growing_monthly_income(real_growth_rate=real_growth_rate)
 
 # --- Display Projection Table ---
 st.subheader("📊 Projection Table")
 st.dataframe(results.style.format("${:,.0f}"))
 
-# --- Plotly Chart for Real Dollar Balances ---
+# --- Plotly Chart ---
 st.subheader("📈 Inflation-Adjusted Balance Over Time")
 
 fig = go.Figure()
@@ -84,18 +84,19 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
+# --- Monthly Income Section ---
 st.subheader("💰 Monthly Retirement Take-Home Pay")
 
 st.markdown(
-    """
+    f"""
     These estimates assume you fully deplete your accounts by end of retirement.
 
-    - **Fixed purchasing power**: Withdrawals keep your lifestyle constant, adjusted for inflation.
-    - **Growing withdrawals**: You increase your purchasing power each year (e.g. 2% real growth).
+    - **Fixed purchasing power**: Monthly income stays constant in today's dollars.
+    - **Growing withdrawals**: Monthly income grows by **{int(real_growth_rate * 100)}%** annually in real terms.
     """
 )
 
-# Merge both summaries
+# Create income table
 income_table = {
     "Account": [],
     "Fixed (Real $)": [],
@@ -112,5 +113,16 @@ for i in range(len(income_summary)):
     income_table["Growing (Real $)"].append(f"${income_summary_growing[i]['real_monthly']:,.0f}")
     income_table["Growing (Nominal $)"].append(f"${income_summary_growing[i]['nominal_monthly_first_year']:,.0f}")
 
-st.table(income_table)
+# Add total row
+fixed_real_total = sum(entry["real_monthly"] for entry in income_summary)
+fixed_nom_total = sum(entry["nominal_monthly_first_year"] for entry in income_summary)
+growing_real_total = sum(entry["real_monthly"] for entry in income_summary_growing)
+growing_nom_total = sum(entry["nominal_monthly_first_year"] for entry in income_summary_growing)
 
+income_table["Account"].append("**Total**")
+income_table["Fixed (Real $)"].append(f"**${fixed_real_total:,.0f}**")
+income_table["Fixed (Nominal $)"].append(f"**${fixed_nom_total:,.0f}**")
+income_table["Growing (Real $)"].append(f"**${growing_real_total:,.0f}**")
+income_table["Growing (Nominal $)"].append(f"**${growing_nom_total:,.0f}**")
+
+st.table(income_table)
