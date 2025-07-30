@@ -84,7 +84,8 @@ class SimulationEngine:
             if abs(r_m - g_m) < 1e-8:
                 p_real = balance / total_months
             else:
-                p_real = balance * (r_m / (1 - ((1 + g_m) / (1 + r_m)) ** total_months))
+                p_real = balance * ((r_m - g_m) / (1 - ((1 + g_m) / (1 + r_m)) ** total_months))
+
     
             # Adjust the first payment into nominal dollars at retirement
             years_to_retirement = self.user.retirement_age - self.user.current_age
